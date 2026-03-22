@@ -9,8 +9,22 @@
 #include <assimp/scene.h>      // ← aiNode объявлен здесь!
 #include <assimp/postprocess.h>
 
-#include "object_wrapper.h"
+struct Vertex
+{
+	QVector3D position;
+	QVector3D normal;
+	QVector2D texCoord;
 
+	Vertex() : position(0, 0, 0), normal(0, 0, 0), texCoord(0, 0) {}
+};
+
+// Структура меша
+struct Mesh
+{
+	QVector<Vertex> vertices;
+	QVector<unsigned int> indices;
+	QString name;
+};
 
 class ModelLoader
 {

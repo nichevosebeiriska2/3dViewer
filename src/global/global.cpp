@@ -22,5 +22,5 @@ std::filesystem::path Global::GetShadersDirectory()
 
 QVector<QString> Global::GetEnabledFileFormats()
 {
-	return {"stl"};
+	return {"stl", "obj", "glTF", "gltf"};
 }

@@ -1,5 +1,11 @@
 ﻿#include "object_wrapper.h"
 
+void checkGLError() {
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		qDebug() << "OpenGL Error at" << ":" << err;
+	}
+}
 
 unsigned int ObjectWrapper::GetNumberOfVertices()
 {
@@ -101,4 +107,115 @@ void ObjectWrapperSTL::Release()
 {
 	m_vao.release();
 	m_vbo.release();
+}
+
+void ObjectWrapperSTL::DrawByShader(QOpenGLShaderProgram* program)
+{
+	if (!program)
+		return;
+
+	program->bind();
+	m_vao.bind();
+
+
+	glDrawArrays(GL_TRIANGLES, 0, GetNumberOfVertices());
+
+
+	m_vao.release();
+}
+
+
+ObjectWrapperOBJ::ObjectWrapperOBJ(QVector<Mesh> meshes, QObject* parent)
+{
+	for (const auto& mesh_ : meshes)
+	{
+		auto& mesh = m_vec_heshes.emplace_back();
+		checkGLError();
+		auto& vbo = m_vec_vbos.emplace_back(QOpenGLBuffer::VertexBuffer);
+		auto& ebo = m_vec_ebos.emplace_back(QOpenGLBuffer::IndexBuffer);
+		auto& ptr_vao = m_vec_vaos.emplace_back(new QOpenGLVertexArrayObject());
+		
+		mesh.m_numbder_of_indices = mesh_.indices.size();
+		mesh.m_vao.reset(new QOpenGLVertexArrayObject());
+		mesh.m_vao->create();
+		mesh.m_vao->bind();
+
+		mesh.m_vbo.create();
+		mesh.m_vbo.bind();
+		mesh.m_vbo.allocate(mesh_.vertices.data(), mesh_.vertices.size());
+
+		mesh.m_ebo.create();
+		mesh.m_ebo.bind();
+		mesh.m_ebo.allocate(mesh_.indices.data(), mesh_.indices.size());
+
+		//mesh.m_vao->release();
+		//mesh.m_vbo.release();
+		//mesh.m_ebo.release();
+		checkGLError();
+	}
+
+	m_vec_middle_point;
+}
+
+
+void ObjectWrapperOBJ::SetAttributes(QOpenGLShaderProgram* program)
+{
+	if (!program)
+		return;
+
+	checkGLError();
+	program->bind();
+
+	for (auto& mesh : m_vec_heshes)
+	{
+		mesh.m_vao->bind();
+		mesh.m_vbo.bind();
+		program->setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(Vertex));
+		//program->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));
+		program->enableAttributeArray(0);
+		//program->enableAttributeArray(1);
+		//mesh.m_vao->release();
+		//mesh.m_vbo.release();
+	}
+	//program->setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(Vertex));
+	//program->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));
+	//program->enableAttributeArray(0);
+	//program->enableAttributeArray(1);
+	
+	program->release();
+	checkGLError();
+}
+
+
+void ObjectWrapperOBJ::Bind() 
+{
+	//m_vao.bind();
+}
+
+
+void ObjectWrapperOBJ::Release()
+{
+	//m_vao.release();
+}
+
+
+void ObjectWrapperOBJ::DrawByShader(QOpenGLShaderProgram* program)
+{
+	if (!program)
+		return;
+
+	program->bind();
+
+	for (auto& mesh : m_vec_heshes)
+	{
+		mesh.m_vao->bind();
+		//glDrawElements(GL_POINTS, mesh.m_numbder_of_indices, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, mesh.m_numbder_of_indices, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, mesh.m_numbder_of_indices);
+		//glDrawArrays(GL_POINTS, 0, mesh.m_numbder_of_indices);
+		glDrawArrays(GL_TRIANGLES, 0, mesh.m_numbder_of_indices);
+		checkGLError();
+		mesh.m_vao->release();
+	}
+	program->release();
 }

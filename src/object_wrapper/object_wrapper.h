@@ -6,34 +6,26 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 
+#include <memory>
 
-struct Vertex
-{
-	QVector3D position;
-	QVector3D normal;
-	QVector2D texCoord;
+#include "modelloader.h"
 
-	Vertex() : position(0, 0, 0), normal(0, 0, 0), texCoord(0, 0) {}
-};
 
-// Структура меша
-struct Mesh
-{
-	QVector<Vertex> vertices;
-	QVector<unsigned int> indices;
-	QString name;
-};
 
 
 class ObjectWrapper
 {
 protected:
 	unsigned int m_num_of_vertices{0};
-	QVector3D m_vec_middle_point{0,0,0};
-	QVector3D m_vec_sizes{0,0,0};
+	QVector3D m_vec_middle_point{0.1,0.1,0.1 };
+	QVector3D m_vec_sizes{1,1,1};
 
 	float m_min_poly_size = 0.0f;
 	float m_max_poly_size = 0.0f;
+	
+	std::vector<QOpenGLBuffer> m_vec_vbos;
+	std::vector<QOpenGLBuffer> m_vec_ebos;
+	std::vector<std::unique_ptr<QOpenGLVertexArrayObject>> m_vec_vaos;
 
 public:
 	virtual void Bind() = 0;
@@ -44,6 +36,7 @@ public:
 	QVector3D GetMiddlePoint();
 	float GetMinPolySize();
 	float GetMaxPolySize();
+	virtual void DrawByShader(QOpenGLShaderProgram* program) = 0;
 };
 
 
@@ -59,6 +52,29 @@ public:
 	void SetAttributes(QOpenGLShaderProgram *program) override;
 	void Bind() override;
 	void Release() override;
+	void DrawByShader(QOpenGLShaderProgram* program) override;
+};
+
+
+class ObjectWrapperOBJ : public ObjectWrapper
+{
+private:
+	struct MyMesh
+	{
+		QOpenGLBuffer m_vbo{ QOpenGLBuffer::VertexBuffer };
+		QOpenGLBuffer m_ebo{ QOpenGLBuffer::IndexBuffer };
+		std::unique_ptr<QOpenGLVertexArrayObject> m_vao;
+		int m_numbder_of_indices = 0;
+	};
+	std::vector<MyMesh> m_vec_heshes;
+
+public:
+	ObjectWrapperOBJ(QVector<Mesh> meshes, QObject* paren);
+
+	void SetAttributes(QOpenGLShaderProgram* program) override;
+	void Bind() override;
+	void Release() override;
+	void DrawByShader(QOpenGLShaderProgram* program) override;
 };
 
 

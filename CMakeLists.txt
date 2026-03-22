@@ -3,23 +3,28 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project (helloworld  VERSION 1.0.0 LANGUAGES CXX)
-
-list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/packages/qtbase_x64-windows")
-list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/packages/assimp_x64-windows")
+project (helloworld VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+
+set(VCPKG_PATH "C:/vcpkg/packages")
+
+list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/qtbase_x64-windows")
+list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/assimp_x64-windows")
+
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
 find_package(assimp CONFIG REQUIRED)
 
 qt_standard_project_setup()
 # Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+#if (POLICY CMP0141)
+#  cmake_policy(SET CMP0141 NEW)
+#  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+#endif()
 
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/src/*.h)
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp)
@@ -62,7 +67,7 @@ if(WIN32)
   
     set(WINDEPLOYQT_PATH "C:/vcpkg/installed/x64-windows/tools/Qt6/bin/windeployqt.debug.bat")
       set(VCPKG_BIN "C:/vcpkg/installed/x64-windows/debug/bin")
-      set(OUTPUT_DIR "C:/work/69-figma_parser/Tools/QtTest/out/build/x64-debug")
+      set(OUTPUT_DIR "C:/Users/niche/source/repos/3dViewer/out/build/x64-Debug")
       set(TARGET_DIR "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
       set(VCPKG_BIN_DEBUG, "C:/vcpkg/installed/x64-windows/debug/bin/")
 

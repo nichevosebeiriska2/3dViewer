@@ -116,21 +116,28 @@ void GLWidget::paintGL()
 {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
 	// Стандартная формула: Итоговый = Источник * Alpha + Назначение * (1 - Alpha)
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (!str_next_file.isEmpty())
+	{
+		auto ext = std::filesystem::path(str_next_file.toStdString()).extension().string();
+		if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".stl")
+			AddObject(new ObjectWrapperSTL(ModelLoader{}.load(str_next_file).front().vertices));
+		else if (std::filesystem::path(str_next_file.toStdString()).extension().string() == ".obj")
+			AddObject(new ObjectWrapperOBJ(ModelLoader{}.load(str_next_file), this));
+		str_next_file.clear();
+	}
+
 	if(!m_ptr_object || !m_program)
 		return;
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 
-	if(!str_next_file.isEmpty())
-	{
-		AddObject(new ObjectWrapperSTL(ModelLoader{}.load(str_next_file).front().vertices));
-		str_next_file.clear();
-	}
+	
 
 	m_program->bind();
 
@@ -151,12 +158,13 @@ void GLWidget::paintGL()
 	m_program->setUniformValue("min_poly_size", m_ptr_object->GetMinPolySize());
 	m_program->setUniformValue("max_poly_size", m_ptr_object->GetMaxPolySize());
 
-	m_ptr_object->Bind();
+	m_ptr_object->DrawByShader(m_program);
+	//m_ptr_object->Bind();
 
-	glDrawArrays(GL_TRIANGLES, 0, m_ptr_object->GetNumberOfVertices());
+	//glDrawArrays(GL_TRIANGLES, 0, m_ptr_object->GetNumberOfVertices());
 
-	m_ptr_object->Release();
-	m_program->release();
+	//m_ptr_object->Release();
+	//m_program->release();
 
 	// Анимация
 	m_rotation += 1.0f;

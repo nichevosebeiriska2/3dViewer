@@ -4,6 +4,7 @@
 #include <assimp/postprocess.h>
 #include <QFileInfo>
 #include <QDebug>
+#include <iostream>
 
 QString ModelLoader::m_lastError;
 
@@ -48,13 +49,14 @@ QVector<Mesh> ModelLoader::load(const QString &filePath)
 	QVector<Mesh> meshes;
 
 	// Флаги пост-обработки
-	unsigned int flags = aiProcess_Triangulate |
-		aiProcess_GenNormals |
-		aiProcess_FlipUVs |
-		aiProcess_CalcTangentSpace |
-		aiProcess_RemoveRedundantMaterials |
-		aiProcess_OptimizeMeshes |
-		aiProcess_SortByPType;
+	unsigned int flags = aiProcess_Triangulate;
+		
+		//|aiProcess_GenNormals |
+		//aiProcess_FlipUVs |
+		//aiProcess_CalcTangentSpace |
+		//aiProcess_RemoveRedundantMaterials;
+		//aiProcess_OptimizeMeshes |
+		//aiProcess_SortByPType;
 
 	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
 
@@ -160,10 +162,24 @@ Mesh ModelLoader::processMesh(aiMesh *aiMesh, const aiScene *scene)
 	for(unsigned int i = 0; i < aiMesh->mNumFaces; i++)
 	{
 		aiFace face = aiMesh->mFaces[i];
-		for(unsigned int j = 0; j < face.mNumIndices; j++)
-		{
-			mesh.indices.append(face.mIndices[j]);
-		}
+		//std::cout << face.mNumIndices << std::endl;
+		//std::cout << face.mIndices[0] << " : " <<face.mIndices[1] << " : " << face.mIndices[2] << std::endl;
+
+		if(face.mNumIndices == 3)
+			for (unsigned int j = 0; j < face.mNumIndices; j++)
+			{
+				mesh.indices.append(face.mIndices[j]);
+			}
+		else if (face.mNumIndices == 4)
+			{
+			mesh.indices.append(face.mIndices[0]);
+			mesh.indices.append(face.mIndices[1]);
+			mesh.indices.append(face.mIndices[2]);
+
+			mesh.indices.append(face.mIndices[0]);
+			mesh.indices.append(face.mIndices[2]);
+			mesh.indices.append(face.mIndices[3]);
+			}
 	}
 
 	return mesh;
