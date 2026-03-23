@@ -29,6 +29,8 @@ const std::map<ShaderProgramInterface::ObjectType, std::string> ShaderProgramInt
 	{STL,					"STL"},
 	{STL_MESH,		"STL_MESH"},
 	{STL_COLORED, "STL_COLORED" },
+	{OBJ,								"OBJ"},
+	{OBJ_WITH_TEXTURE,	"OBJ_WITH_TEXTURE"},
 	{SCENE_AXIS , "Scene/Axis"},
 	{glass,				"glass"}
 };

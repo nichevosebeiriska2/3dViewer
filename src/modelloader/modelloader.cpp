@@ -42,6 +42,53 @@ bool ModelLoader::load(const QString &filePath, QVector<Mesh> &meshes)
 	return true;
 }
 
+std::vector<Material> ModelLoader::ProcessMaterials(const aiScene *scene)
+{
+	std::vector<Material> materials;
+
+	for(unsigned int i = 0; i < scene->mNumMaterials; ++i)
+	{
+		aiMaterial *mat = scene->mMaterials[i];
+		Material matData;
+
+		// Извлечение Diffuse цвета (Kd)
+		aiColor4D diffuse(0.f, 0.f, 0.f, 0.f);
+		aiString strName;
+		if(AI_SUCCESS == mat->Get(AI_MATKEY_NAME, strName))
+		{
+			//std::cout<<strName<<std::endl;
+			int a = 1;
+		}
+		if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
+		{
+			matData.diffuseColor = QVector3D(diffuse.r, diffuse.g, diffuse.b);
+		}
+		else
+		{
+			matData.diffuseColor = QVector3D(1.0, 1.0, 1.0); // По умолчанию белый
+		}
+
+		aiColor4D specular(0.f, 0.f, 0.f, 0.f);
+		if(AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_SPECULAR, &specular))
+		{
+			matData.specularColor = QVector3D(specular.r, specular.g, specular.b);
+		}
+
+		float shininess = 0.f;
+		if(AI_SUCCESS == aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shininess))
+		{
+			matData.shininess = shininess;
+		}
+		else
+		{
+			matData.shininess = 32.0f; // Значение по умолчанию
+		}
+
+		materials.emplace_back(std::move(matData));
+	}
+
+	return materials;
+}
 
 QVector<Mesh> ModelLoader::load(const QString &filePath)
 {
@@ -49,16 +96,18 @@ QVector<Mesh> ModelLoader::load(const QString &filePath)
 	QVector<Mesh> meshes;
 
 	// Флаги пост-обработки
-	unsigned int flags = aiProcess_Triangulate;
-		
-		//|aiProcess_GenNormals |
-		//aiProcess_FlipUVs |
-		//aiProcess_CalcTangentSpace |
-		//aiProcess_RemoveRedundantMaterials;
-		//aiProcess_OptimizeMeshes |
-		//aiProcess_SortByPType;
+	unsigned int flags = aiProcess_Triangulate
+												| aiProcess_GenNormals
+												| aiProcess_FlipUVs
+												| aiProcess_CalcTangentSpace
+												| aiProcess_RemoveRedundantMaterials
+												| aiProcess_OptimizeMeshes
+												| aiProcess_SortByPType;
 
 	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
+	auto materials = ProcessMaterials(scene);
+	//auto mat0 = scene->mMaterials[0];
+	//auto mat1 = scene->mMaterials[1];
 
 	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{

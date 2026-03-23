@@ -11,6 +11,7 @@
 
 #include "shader_program_interface.h"
 #include "modelloader.h"
+#include "model_loader_obj.h"
 #include "global.h"
 
 GLWidget::GLWidget(QWidget *parent)
@@ -46,6 +47,14 @@ void GLWidget::SetModelColor(QColor color)
 {
 	m_model_color = QVector3D(color.red(), color.green(), color.blue()) / 255 ;
 }
+
+
+void GLWidget::SetDefaultOBJShader()
+{
+	m_program = *ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::OBJ, this);
+	m_ptr_object->SetAttributes(m_program);
+}
+
 
 void GLWidget::SetDefaultShader()
 {
@@ -114,19 +123,16 @@ QVector3D createVectorFromAngles(float azimuth, float elevation, float length = 
 
 void GLWidget::paintGL()
 {
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glEnable(GL_BLEND);
-	// Стандартная формула: Итоговый = Источник * Alpha + Назначение * (1 - Alpha)
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	if (!str_next_file.isEmpty())
 	{
 		auto ext = std::filesystem::path(str_next_file.toStdString()).extension().string();
 		if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".stl")
 			AddObject(new ObjectWrapperSTL(ModelLoader{}.load(str_next_file).front().vertices));
-		else if (std::filesystem::path(str_next_file.toStdString()).extension().string() == ".obj")
-			AddObject(new ObjectWrapperOBJ(ModelLoader{}.load(str_next_file), this));
+		else if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".obj")
+		{
+			AddObject(ModelLoaderOBJ{}.load(str_next_file));
+			SetDefaultOBJShader();
+		}
 		str_next_file.clear();
 	}
 
@@ -159,12 +165,6 @@ void GLWidget::paintGL()
 	m_program->setUniformValue("max_poly_size", m_ptr_object->GetMaxPolySize());
 
 	m_ptr_object->DrawByShader(m_program);
-	//m_ptr_object->Bind();
-
-	//glDrawArrays(GL_TRIANGLES, 0, m_ptr_object->GetNumberOfVertices());
-
-	//m_ptr_object->Release();
-	//m_program->release();
 
 	// Анимация
 	m_rotation += 1.0f;

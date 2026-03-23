@@ -9,22 +9,7 @@
 #include <assimp/scene.h>      // ← aiNode объявлен здесь!
 #include <assimp/postprocess.h>
 
-struct Vertex
-{
-	QVector3D position;
-	QVector3D normal;
-	QVector2D texCoord;
-
-	Vertex() : position(0, 0, 0), normal(0, 0, 0), texCoord(0, 0) {}
-};
-
-// Структура меша
-struct Mesh
-{
-	QVector<Vertex> vertices;
-	QVector<unsigned int> indices;
-	QString name;
-};
+#include "common.h"
 
 class ModelLoader
 {
@@ -35,12 +20,15 @@ public:
 	static QString getErrorString();
 	static QStringList getSupportedFormats();
 
-private:
+protected:
+	static std::vector<Material> ProcessMaterials(const aiScene *scen);
 	static void processNode(aiNode *node, const aiScene *scene, QVector<Mesh> &meshes);
 	static Mesh processMesh(aiMesh *aiMesh, const aiScene *scene);
 
 	static QString m_lastError;
 };
+
+
 
 
 #endif

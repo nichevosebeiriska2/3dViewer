@@ -11,9 +11,6 @@
 
 int main(int argc, char *argv[])
 {
-	std::filesystem::path workDir = std::filesystem::current_path();
-	//std::cout<<"current = "<< workDir.generic_string() << std::endl;
-	//// Глобальный формат OpenGL (должен быть до создания QApplication)
 	QSurfaceFormat format;
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CompatibilityProfile);

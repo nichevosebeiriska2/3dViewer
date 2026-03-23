@@ -12,6 +12,7 @@ public:
 	enum ObjectType
 	{
 		STL, STL_MESH, STL_COLORED, // STL
+		OBJ, OBJ_WITH_TEXTURE, //OBJ
 		SCENE_AXIS,
 		glass
 	};

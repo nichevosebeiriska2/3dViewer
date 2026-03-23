@@ -54,6 +54,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/object_wrapper
   src/glwidget
   src/modelloader
+  src/modelloader/OBJ
   src/mainwindow
   src/scene
   src/shaders

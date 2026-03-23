@@ -29,6 +29,8 @@ public:
 	void SetMeshShader();
 	void SetMeshSizeShader();
 
+	void SetDefaultOBJShader();
+
 protected:
 	void initializeGL() override;
 	void paintGL() override;
