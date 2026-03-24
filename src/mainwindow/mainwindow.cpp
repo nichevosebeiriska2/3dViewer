@@ -6,6 +6,7 @@
 #include <QColorDialog>
 #include <QToolBar>
 #include <QMenu>
+#include <QStandardItemModel>
 
 #include <iostream>
 
@@ -30,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
     glWidget->setMinimumSize(1000, 800);
 		glWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+		connect(glWidget, &GLWidget::UpdateTree, this, &MainWindow::UpdateTreeView);
+
 		QVBoxLayout *layout = new QVBoxLayout();
     
 		layout->addWidget(new QPushButton("center"));
@@ -53,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
 		});
 
     layout->addWidget(btnColor);
-
+		
     m_slider_x = new QSlider();
     m_slider_y = new QSlider();
 		connect(m_slider_x, &QSlider::valueChanged, this, &MainWindow::SliderXValueChanged);
@@ -64,6 +67,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 		m_main_layout->addWidget(glWidget);
     m_main_layout->addLayout(layout);
+
+		auto* p_elem = new QStandardItemModel(this);
+
+		p_elem->setHorizontalHeaderLabels(QStringList() << "Node Name" << "Type");
+		auto *p_tree = new QTreeView();
+		p_tree->setModel(p_elem);
+
+		m_main_layout->addWidget(p_tree);
 
 		viewAction->setMenu(CreateMenuShaders());
 		toolbar->addAction(viewAction);
@@ -88,6 +99,13 @@ void MainWindow::SliderYValueChanged(int i)
 {
   glWidget->SetLightAngles(m_slider_x->value(), m_slider_y->value());
 }
+
+
+void MainWindow::UpdateTreeView(QTreeView *pTree)
+{
+	m_main_layout->addWidget(pTree);
+}
+
 
 QMenu *MainWindow::CreateMenuShaders()
 {

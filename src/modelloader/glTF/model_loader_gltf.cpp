@@ -1,10 +1,10 @@
-﻿#include "model_loader_obj.h"
+﻿#include "model_loader_gltf.h"
 #include "common.h"
 #include <filesystem>
 
-//QString ModelLoaderOBJ::m_lastError = "";
+//QString ModelLoaderGLTF::m_lastError = "";
 //
-//ObjectWrapperOBJ* ModelLoaderOBJ::load(const QString &filePath)
+//ObjectWrapperGLTF* ModelLoaderGLTF::load(const QString &filePath)
 //{
 //	Assimp::Importer importer;
 //
@@ -30,7 +30,7 @@
 //	vec_meshes.clear();
 //	processNode(scene->mRootNode, scene, vec_meshes);
 //
-//	auto *p_obj = new ObjectWrapperOBJ(vec_meshes, std::move(vec_materials));
+//	auto *p_obj = new ObjectWrapperGLTF(vec_meshes, std::move(vec_materials));
 //
 //	QVector3D vec_mid_point{0,0,0};
 //	QVector3D vec_sizes{0,0,0};
@@ -43,13 +43,13 @@
 //}
 //
 //
-//std::unique_ptr<QOpenGLTexture> ModelLoaderOBJ::CreateTexture()
+//std::unique_ptr<QOpenGLTexture> ModelLoaderGLTF::CreateTexture()
 //{
 //	return nullptr;
 //}
 //
 //
-//std::vector<Material> ModelLoaderOBJ::ProcessMaterials(const QString &filePath, const aiScene *scene)
+//std::vector<Material> ModelLoaderGLTF::ProcessMaterials(const QString &filePath, const aiScene *scene)
 //{
 //	std::vector<Material> materials;
 //
@@ -144,9 +144,10 @@
 //}
 //
 //
-//void ModelLoaderOBJ::processNode(aiNode *node, const aiScene *scene, std::vector<Mesh2> &meshes)
+//void ModelLoaderGLTF::processNode(aiNode *node, const aiScene *scene, std::vector<Mesh2> &meshes)
 //{
 //	// Обработка мешей текущего узла
+//	auto m = node->mTransformation;
 //	for(unsigned int i = 0; i < node->mNumMeshes; i++)
 //	{
 //		aiMesh *aiMesh = scene->mMeshes[node->mMeshes[i]];
@@ -163,7 +164,7 @@
 //}
 //
 //
-//Mesh2 ModelLoaderOBJ::processMesh(aiMesh *aiMesh, const aiScene *scene)
+//Mesh2 ModelLoaderGLTF::processMesh(aiMesh *aiMesh, const aiScene *scene)
 //{
 //	Mesh2 mesh;
 //
@@ -192,7 +193,7 @@
 //			vertex.texCoord.setY(aiMesh->mTextureCoords[0][i].y);
 //		}
 //
-//		mesh.vertices.emplace_back(vertex);
+//		mesh.vertices.append(vertex);
 //	}
 //
 //	auto [min, max] = CalcMinMaxPoints(mesh);
@@ -207,7 +208,7 @@
 //
 //		if(face.mNumIndices == 3)
 //			for(unsigned int j = 0; j < face.mNumIndices; j++)
-//				mesh.indices.emplace_back(face.mIndices[j]);
+//				mesh.indices.append(face.mIndices[j]);
 //	}
 //
 //	return mesh;

@@ -8,39 +8,42 @@
 
 QString ModelLoader::m_lastError;
 
-bool ModelLoader::load(const QString &filePath, QVector<Mesh> &meshes)
-{
-	Assimp::Importer importer;
-
-	// Флаги пост-обработки
-	unsigned int flags = aiProcess_Triangulate |
-		aiProcess_GenNormals |
-		aiProcess_FlipUVs |
-		aiProcess_CalcTangentSpace |
-		aiProcess_RemoveRedundantMaterials |
-		aiProcess_OptimizeMeshes |
-		aiProcess_SortByPType;
-
-	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
-
-	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		m_lastError = QString::fromStdString(importer.GetErrorString());
-		qWarning() << "Assimp error:" << m_lastError;
-		return false;
-	}
-
-	meshes.clear();
-	processNode(scene->mRootNode, scene, meshes);
-
-	if(meshes.isEmpty())
-	{
-		m_lastError = "No meshes found in file";
-		return false;
-	}
-
-	return true;
-}
+//bool ModelLoader::load(const QString &filePath, QVector<Mesh> &meshes)
+//{
+//	Assimp::Importer importer;
+//
+//	// Флаги пост-обработки
+//	unsigned int flags = aiProcess_Triangulate |
+//		aiProcess_GenNormals |
+//		aiProcess_FlipUVs |
+//		aiProcess_CalcTangentSpace |
+//		aiProcess_RemoveRedundantMaterials |
+//		aiProcess_OptimizeMeshes |
+//		aiProcess_SortByPType;
+//
+//	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
+//
+//	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+//	{
+//		m_lastError = QString::fromStdString(importer.GetErrorString());
+//		qWarning() << "Assimp error:" << m_lastError;
+//		return false;
+//	}
+//
+//	meshes.clear();
+//
+//	ObjectNodeSTL nodeStl(scene->mRootNode, scene);
+//
+//	processNode(scene->mRootNode, scene, meshes);
+//
+//	if(meshes.isEmpty())
+//	{
+//		m_lastError = "No meshes found in file";
+//		return false;
+//	}
+//
+//	return true;
+//}
 
 std::vector<Material> ModelLoader::ProcessMaterials(const aiScene *scene)
 {
@@ -90,149 +93,206 @@ std::vector<Material> ModelLoader::ProcessMaterials(const aiScene *scene)
 	return materials;
 }
 
-QVector<Mesh> ModelLoader::load(const QString &filePath)
+//QVector<Mesh> ModelLoader::load(const QString &filePath)
+//{
+//	Assimp::Importer importer;
+//	QVector<Mesh> meshes;
+//
+//	// Флаги пост-обработки
+//	unsigned int flags = aiProcess_Triangulate
+//												| aiProcess_GenNormals
+//												| aiProcess_FlipUVs
+//												| aiProcess_CalcTangentSpace
+//												| aiProcess_RemoveRedundantMaterials
+//												| aiProcess_OptimizeMeshes
+//												| aiProcess_SortByPType;
+//
+//	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
+//	auto materials = ProcessMaterials(scene);
+//	//auto mat0 = scene->mMaterials[0];
+//	//auto mat1 = scene->mMaterials[1];
+//
+//	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+//	{
+//		m_lastError = QString::fromStdString(importer.GetErrorString());
+//		qWarning() << "Assimp error:" << m_lastError;
+//		return {};
+//	}
+//
+//	ObjectNodeSTL nodeStl(scene->mRootNode, scene);
+//	meshes.clear();
+//	processNode(scene->mRootNode, scene, meshes);
+//
+//	if(meshes.isEmpty())
+//	{
+//		m_lastError = "No meshes found in file";
+//		return {};
+//	}
+//
+//	return meshes;
+//}
+
+
+ObjectNodeSTL* ModelLoader::loadStl(const QString &filePath)
 {
 	Assimp::Importer importer;
-	QVector<Mesh> meshes;
 
 	// Флаги пост-обработки
 	unsigned int flags = aiProcess_Triangulate
-												| aiProcess_GenNormals
-												| aiProcess_FlipUVs
-												| aiProcess_CalcTangentSpace
-												| aiProcess_RemoveRedundantMaterials
-												| aiProcess_OptimizeMeshes
-												| aiProcess_SortByPType;
+		| aiProcess_GenNormals
+		| aiProcess_FlipUVs
+		| aiProcess_CalcTangentSpace
+		| aiProcess_RemoveRedundantMaterials
+		| aiProcess_OptimizeMeshes
+		| aiProcess_SortByPType;
 
 	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
-	auto materials = ProcessMaterials(scene);
-	//auto mat0 = scene->mMaterials[0];
-	//auto mat1 = scene->mMaterials[1];
 
-	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		m_lastError = QString::fromStdString(importer.GetErrorString());
-		qWarning() << "Assimp error:" << m_lastError;
-		return {};
-	}
-
-	meshes.clear();
-	processNode(scene->mRootNode, scene, meshes);
-
-	if(meshes.isEmpty())
-	{
-		m_lastError = "No meshes found in file";
-		return {};
-	}
-
-	return meshes;
+	return new ObjectNodeSTL(scene->mRootNode, scene);
 }
 
-bool ModelLoader::loadSingleMesh(const QString &filePath, Mesh &mesh)
+
+ObjectNodeOBJ *ModelLoader::loadObj(const QString &filePath)
 {
-	QVector<Mesh> meshes;
+	Assimp::Importer importer;
 
-	if(!load(filePath, meshes))
-	{
-		return false;
-	}
+	// Флаги пост-обработки
+	unsigned int flags = aiProcess_Triangulate
+		| aiProcess_GenNormals
+		| aiProcess_FlipUVs
+		| aiProcess_CalcTangentSpace
+		| aiProcess_RemoveRedundantMaterials
+		| aiProcess_OptimizeMeshes
+		| aiProcess_SortByPType;
 
-	// Объединяем все меши в один
-	mesh.vertices.clear();
-	mesh.indices.clear();
+	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
 
-	int indexOffset = 0;
-	for(const auto &m : meshes)
-	{
-		mesh.vertices.append(m.vertices);
-
-		for(unsigned int idx : m.indices)
-		{
-			mesh.indices.append(idx + indexOffset);
-		}
-
-		indexOffset += m.vertices.size();
-	}
-
-	return true;
+	return new ObjectNodeOBJ(scene->mRootNode, scene);
 }
 
-void ModelLoader::processNode(aiNode *node, const aiScene *scene, QVector<Mesh> &meshes)
+ObjectNodeGLTF *ModelLoader::loadGltf(const QString &filePath)
 {
-	// Обработка мешей текущего узла
-	for(unsigned int i = 0; i < node->mNumMeshes; i++)
-	{
-		aiMesh *aiMesh = scene->mMeshes[node->mMeshes[i]];
-		Mesh mesh = processMesh(aiMesh, scene);
-		mesh.name = QString::fromStdString(node->mName.data);
-		meshes.append(mesh);
-	}
+	Assimp::Importer importer;
 
-	// Рекурсивная обработка дочерних узлов
-	for(unsigned int i = 0; i < node->mNumChildren; i++)
-	{
-		processNode(node->mChildren[i], scene, meshes);
-	}
+	// Флаги пост-обработки
+	unsigned int flags = aiProcess_Triangulate
+		| aiProcess_GenNormals
+		| aiProcess_FlipUVs
+		| aiProcess_CalcTangentSpace
+		| aiProcess_RemoveRedundantMaterials
+		| aiProcess_OptimizeMeshes
+		| aiProcess_SortByPType;
+
+	const aiScene *scene = importer.ReadFile(filePath.toStdString(), flags);
+
+	return new ObjectNodeGLTF(scene->mRootNode, scene);
 }
 
-Mesh ModelLoader::processMesh(aiMesh *aiMesh, const aiScene *scene)
-{
-	Mesh mesh;
+//bool ModelLoader::loadSingleMesh(const QString &filePath, Mesh &mesh)
+//{
+//	QVector<Mesh> meshes;
+//
+//	if(!load(filePath, meshes))
+//	{
+//		return false;
+//	}
+//
+//	// Объединяем все меши в один
+//	mesh.vertices.clear();
+//	mesh.indices.clear();
+//
+//	int indexOffset = 0;
+//	for(const auto &m : meshes)
+//	{
+//		mesh.vertices.append(m.vertices);
+//
+//		for(unsigned int idx : m.indices)
+//		{
+//			mesh.indices.append(idx + indexOffset);
+//		}
+//
+//		indexOffset += m.vertices.size();
+//	}
+//
+//	return true;
+//}
 
-	// Обработка вершин
-	for(unsigned int i = 0; i < aiMesh->mNumVertices; i++)
-	{
-		Vertex vertex;
+//void ModelLoader::processNode(aiNode *node, const aiScene *scene, std::vector<Mesh2> &meshes)
+//{
+//	// Обработка мешей текущего узла
+//	for(unsigned int i = 0; i < node->mNumMeshes; i++)
+//	{
+//		aiMesh *aiMesh = scene->mMeshes[node->mMeshes[i]];
+//		Mesh mesh = processMesh(aiMesh, scene);
+//		mesh.name = QString::fromStdString(node->mName.data);
+//		meshes.emplace_back(mesh);
+//	}
+//
+//	// Рекурсивная обработка дочерних узлов
+//	for(unsigned int i = 0; i < node->mNumChildren; i++)
+//	{
+//		processNode(node->mChildren[i], scene, meshes);
+//	}
+//}
 
-		// Позиция
-		vertex.position.setX(aiMesh->mVertices[i].x);
-		vertex.position.setY(aiMesh->mVertices[i].y);
-		vertex.position.setZ(aiMesh->mVertices[i].z);
-
-		// Нормали
-		if(aiMesh->mNormals)
-		{
-			vertex.normal.setX(aiMesh->mNormals[i].x);
-			vertex.normal.setY(aiMesh->mNormals[i].y);
-			vertex.normal.setZ(aiMesh->mNormals[i].z);
-		}
-
-		// Текстуры (если есть)
-		if(aiMesh->mTextureCoords[0])
-		{
-			vertex.texCoord.setX(aiMesh->mTextureCoords[0][i].x);
-			vertex.texCoord.setY(aiMesh->mTextureCoords[0][i].y);
-		}
-
-		mesh.vertices.append(vertex);
-	}
-
-	// Обработка индексов
-	for(unsigned int i = 0; i < aiMesh->mNumFaces; i++)
-	{
-		aiFace face = aiMesh->mFaces[i];
-		//std::cout << face.mNumIndices << std::endl;
-		//std::cout << face.mIndices[0] << " : " <<face.mIndices[1] << " : " << face.mIndices[2] << std::endl;
-
-		if(face.mNumIndices == 3)
-			for (unsigned int j = 0; j < face.mNumIndices; j++)
-			{
-				mesh.indices.append(face.mIndices[j]);
-			}
-		else if (face.mNumIndices == 4)
-			{
-			mesh.indices.append(face.mIndices[0]);
-			mesh.indices.append(face.mIndices[1]);
-			mesh.indices.append(face.mIndices[2]);
-
-			mesh.indices.append(face.mIndices[0]);
-			mesh.indices.append(face.mIndices[2]);
-			mesh.indices.append(face.mIndices[3]);
-			}
-	}
-
-	return mesh;
-}
+//Mesh ModelLoader::processMesh(aiMesh *aiMesh, const aiScene *scene)
+//{
+//	Mesh mesh;
+//
+//	// Обработка вершин
+//	for(unsigned int i = 0; i < aiMesh->mNumVertices; i++)
+//	{
+//		Vertex vertex;
+//
+//		// Позиция
+//		vertex.position.setX(aiMesh->mVertices[i].x);
+//		vertex.position.setY(aiMesh->mVertices[i].y);
+//		vertex.position.setZ(aiMesh->mVertices[i].z);
+//
+//		// Нормали
+//		if(aiMesh->mNormals)
+//		{
+//			vertex.normal.setX(aiMesh->mNormals[i].x);
+//			vertex.normal.setY(aiMesh->mNormals[i].y);
+//			vertex.normal.setZ(aiMesh->mNormals[i].z);
+//		}
+//
+//		// Текстуры (если есть)
+//		if(aiMesh->mTextureCoords[0])
+//		{
+//			vertex.texCoord.setX(aiMesh->mTextureCoords[0][i].x);
+//			vertex.texCoord.setY(aiMesh->mTextureCoords[0][i].y);
+//		}
+//
+//		mesh.vertices.append(vertex);
+//	}
+//
+//	// Обработка индексов
+//	for(unsigned int i = 0; i < aiMesh->mNumFaces; i++)
+//	{
+//		aiFace face = aiMesh->mFaces[i];
+//		//std::cout << face.mNumIndices << std::endl;
+//		//std::cout << face.mIndices[0] << " : " <<face.mIndices[1] << " : " << face.mIndices[2] << std::endl;
+//
+//		if(face.mNumIndices == 3)
+//			for (unsigned int j = 0; j < face.mNumIndices; j++)
+//			{
+//				mesh.indices.append(face.mIndices[j]);
+//			}
+//		else if (face.mNumIndices == 4)
+//			{
+//			mesh.indices.append(face.mIndices[0]);
+//			mesh.indices.append(face.mIndices[1]);
+//			mesh.indices.append(face.mIndices[2]);
+//
+//			mesh.indices.append(face.mIndices[0]);
+//			mesh.indices.append(face.mIndices[2]);
+//			mesh.indices.append(face.mIndices[3]);
+//			}
+//	}
+//
+//	return mesh;
+//}
 
 QString ModelLoader::getErrorString()
 {

@@ -12,7 +12,9 @@
 #include "shader_program_interface.h"
 #include "modelloader.h"
 #include "model_loader_obj.h"
+#include "model_loader_gltf.h"
 #include "global.h"
+#include "node_tree.h"
 
 GLWidget::GLWidget(QWidget *parent)
 	: QOpenGLWidget(parent)
@@ -34,6 +36,7 @@ void GLWidget::AddObject(ObjectWrapper *wrapper)
 {
 	m_ptr_object.reset(wrapper);
 	m_ptr_object->SetAttributes(m_program);
+	UpdateTree(CreateTreeView());
 }
 
 
@@ -53,6 +56,12 @@ void GLWidget::SetDefaultOBJShader()
 {
 	m_program = *ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::OBJ, this);
 	m_ptr_object->SetAttributes(m_program);
+}
+
+
+QTreeView *GLWidget::CreateTreeView()
+{
+	return m_ptr_object->createTreeView();
 }
 
 
@@ -127,10 +136,15 @@ void GLWidget::paintGL()
 	{
 		auto ext = std::filesystem::path(str_next_file.toStdString()).extension().string();
 		if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".stl")
-			AddObject(new ObjectWrapperSTL(ModelLoader{}.load(str_next_file).front().vertices));
+			AddObject(new ObjectWrapperSTL(ModelLoader{}.loadStl(str_next_file)));
 		else if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".obj")
 		{
-			AddObject(ModelLoaderOBJ{}.load(str_next_file));
+			AddObject(new ObjectWrapperOBJ(ModelLoader{}.loadObj(str_next_file)));
+			SetDefaultOBJShader();
+		}
+		else if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".gltf")
+		{
+			AddObject(new ObjectWrapperGLTF(ModelLoader{}.loadGltf(str_next_file)));
 			SetDefaultOBJShader();
 		}
 		str_next_file.clear();

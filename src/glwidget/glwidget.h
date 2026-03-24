@@ -30,6 +30,10 @@ public:
 	void SetMeshSizeShader();
 
 	void SetDefaultOBJShader();
+	QTreeView *CreateTreeView();
+
+signals:
+	void UpdateTree(QTreeView* pTree);
 
 protected:
 	void initializeGL() override;

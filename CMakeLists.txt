@@ -53,8 +53,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/global
   src/object_wrapper
   src/glwidget
+  src/drawing
+  src/node
+  src/widgets
   src/modelloader
   src/modelloader/OBJ
+  src/modelloader/glTF
   src/mainwindow
   src/scene
   src/shaders

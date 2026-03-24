@@ -17,7 +17,7 @@ public:
 		void AddObject(ObjectWrapper* ptr);
 		void SliderXValueChanged(int i);
 		void SliderYValueChanged(int i);
-
+    void UpdateTreeView(QTreeView *pTree);
 private:
     GLWidget *glWidget;
     QHBoxLayout *m_main_layout;
