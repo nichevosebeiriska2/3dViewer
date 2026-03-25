@@ -14,10 +14,12 @@ set(VCPKG_PATH "C:/vcpkg/packages")
 
 list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/qtbase_x64-windows")
 list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/assimp_x64-windows")
+list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/libigl_x64-windows")
 
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
 find_package(assimp CONFIG REQUIRED)
+find_package(libigl CONFIG REQUIRED)
 
 qt_standard_project_setup()
 # Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
@@ -45,8 +47,8 @@ Qt6::OpenGLWidgets
 opengl32.lib
 glu32.lib
 assimp::assimp
+igl::igl_stb igl::igl_core
 )
-
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE QT_WIDGETS_LIB)
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -57,11 +59,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/node
   src/widgets
   src/modelloader
-  src/modelloader/OBJ
-  src/modelloader/glTF
+  #src/modelloader/OBJ
+  #src/modelloader/glTF
   src/mainwindow
   src/scene
   src/shaders
+  ${VCPKG_PATH}/libigl_x64-windows/include
 )
 
 

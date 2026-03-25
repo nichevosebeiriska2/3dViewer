@@ -132,6 +132,26 @@ std::vector<Material> ModelLoader::ProcessMaterials(const aiScene *scene)
 //	return meshes;
 //}
 
+#include <igl/read_triangle_mesh.h>
+
+std::shared_ptr<ObjectSTL> ModelLoader::loadStlByIGL(const QString &filePath)
+{
+	std::string str_to_stl = R"(C:\work\69-figma_parser\Tools\QtTest\models\stl\skeleton-octopus.stl)";
+	Eigen::MatrixXf V;
+	Eigen::MatrixXi F;
+
+	if(!igl::read_triangle_mesh(str_to_stl, V, F))
+		nullptr;
+
+	auto ptr_stl_object = std::make_shared<ObjectSTL>();
+	ptr_stl_object->m_MatrixFaces = std::move(F);
+	ptr_stl_object->m_MatrixVertices = std::move(V);
+
+	ptr_stl_object->CreateBuffers();
+
+	return ptr_stl_object;
+}
+
 
 ObjectNodeSTL* ModelLoader::loadStl(const QString &filePath)
 {

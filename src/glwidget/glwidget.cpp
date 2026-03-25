@@ -11,8 +11,8 @@
 
 #include "shader_program_interface.h"
 #include "modelloader.h"
-#include "model_loader_obj.h"
-#include "model_loader_gltf.h"
+//#include "model_loader_obj.h"
+//#include "model_loader_gltf.h"
 #include "global.h"
 #include "node_tree.h"
 
@@ -26,7 +26,7 @@ GLWidget::GLWidget(QWidget *parent)
 	format.setVersion(3, 3);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
-	format.setSamples(4); // Анисамплинг
+	format.setSamples(4);
 	setFormat(format);
 	setAcceptDrops(true);
 }
@@ -36,7 +36,14 @@ void GLWidget::AddObject(ObjectWrapper *wrapper)
 {
 	m_ptr_object.reset(wrapper);
 	m_ptr_object->SetAttributes(m_program);
-	UpdateTree(CreateTreeView());
+	//UpdateTree(CreateTreeView());
+}
+
+
+void GLWidget::AddStlObject(std::shared_ptr< ObjectSTL> ptr_stl)
+{
+	m_ptr_stl_object = std::move(ptr_stl);
+	m_ptr_stl_object->SetAttributes(m_program);
 }
 
 
@@ -136,7 +143,11 @@ void GLWidget::paintGL()
 	{
 		auto ext = std::filesystem::path(str_next_file.toStdString()).extension().string();
 		if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".stl")
+		{
 			AddObject(new ObjectWrapperSTL(ModelLoader{}.loadStl(str_next_file)));
+			AddStlObject(ModelLoader{}.loadStlByIGL(str_next_file));
+			//auto res = ModelLoader{}.loadStlByIGL(str_next_file);
+		}
 		else if(std::filesystem::path(str_next_file.toStdString()).extension().string() == ".obj")
 		{
 			AddObject(new ObjectWrapperOBJ(ModelLoader{}.loadObj(str_next_file)));
@@ -178,7 +189,10 @@ void GLWidget::paintGL()
 	m_program->setUniformValue("min_poly_size", m_ptr_object->GetMinPolySize());
 	m_program->setUniformValue("max_poly_size", m_ptr_object->GetMaxPolySize());
 
-	m_ptr_object->DrawByShader(m_program);
+	m_ptr_stl_object->m_vao.bind();
+	glDrawArrays(GL_TRIANGLES, 0, 120000);
+	m_ptr_stl_object->m_vao.release();
+	//m_ptr_object->DrawByShader(m_program);
 
 	// Анимация
 	m_rotation += 1.0f;

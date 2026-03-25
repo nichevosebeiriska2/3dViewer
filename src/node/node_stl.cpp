@@ -213,3 +213,31 @@ void ObjectNodeSTL::SetParent(ObjectNodeSTL *pParent)
 {
 	m_pParent = pParent;
 }
+
+
+void ObjectSTL::SetAttributes(QOpenGLShaderProgram *program)
+{
+	m_vao.bind();
+	m_vbo.bind();
+
+	program->setAttributeBuffer(0, GL_FLOAT, 0, 3, sizeof(double) * 3);									// vertex
+	//program->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));	//normal
+
+	program->enableAttributeArray(0);
+	program->enableAttributeArray(1);
+
+	m_vao.release();
+	m_vbo.release();
+}
+
+
+void ObjectSTL::CreateBuffers()
+{
+	m_vao.create();
+	m_vao.bind();
+	m_vbo.create();
+	m_vbo.bind();
+	m_vbo.allocate(m_MatrixVertices.data(), m_MatrixVertices.size() * sizeof(float) /** 3*/);
+	m_vao.release();
+	m_vbo.release();
+}

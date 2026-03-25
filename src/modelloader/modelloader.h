@@ -1,6 +1,8 @@
 ﻿#ifndef MODELLOADER_H
 #define MODELLOADER_H
 
+#include <memory>
+
 #include <QString>
 #include <QVector>
 #include <QVector3D>
@@ -20,6 +22,9 @@ public:
 	static ObjectNodeSTL *loadStl(const QString &filePath);
 	static ObjectNodeOBJ *loadObj(const QString &filePath);
 	static ObjectNodeGLTF *loadGltf(const QString &filePath);
+
+	static std::shared_ptr<ObjectSTL> loadStlByIGL(const QString &filePath);
+	//static ObjectNodeFBX *loadFbx(const QString &filePath);
 	//static bool loadSingleMesh(const QString &filePath, Mesh &mesh);
 	static QString getErrorString();
 	static QStringList getSupportedFormats();

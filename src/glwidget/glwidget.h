@@ -22,6 +22,7 @@ public:
 	~GLWidget();
 
 	void AddObject(ObjectWrapper *wrapper);
+	void AddStlObject(std::shared_ptr<ObjectSTL> ptr_stl);
 	void SetLightAngles(float hor, float ver);
 	void SetModelColor(QColor color);
 
@@ -55,6 +56,7 @@ protected:
 private:
 	QOpenGLShaderProgram *m_program;
 	std::unique_ptr<ObjectWrapper> m_ptr_object;
+	std::shared_ptr<ObjectSTL> m_ptr_stl_object{nullptr};
 
 	QString str_next_file;
 	float m_distance_to_center{3};
