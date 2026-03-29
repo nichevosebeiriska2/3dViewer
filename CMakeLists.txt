@@ -14,24 +14,37 @@ set(VCPKG_PATH "C:/vcpkg/packages")
 
 list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/qtbase_x64-windows")
 list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/assimp_x64-windows")
-list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/libigl_x64-windows")
+list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/eigen3_x64-windows")
+list(APPEND CMAKE_PREFIX_PATH ${VCPKG_PATH}"/embree_x64-windows")
 
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
 find_package(assimp CONFIG REQUIRED)
-find_package(libigl CONFIG REQUIRED)
+find_package(libigl REQUIRED COMPONENTS core embree)
 
 qt_standard_project_setup()
-# Включение горячей перезагрузки для компиляторов MSVC, если поддерживается.
-#if (POLICY CMP0141)
-#  cmake_policy(SET CMP0141 NEW)
-#  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-#endif()
 
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/src/*.h)
 file(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
+include(FetchContent)
+
+FetchContent_Declare(
+    libigl
+    GIT_REPOSITORY https://github.com/libigl/libigl.git
+    GIT_TAG        v2.6.0           # ← Фиксированная версия (важно!)
+    GIT_SHALLOW    TRUE             # ← Ускорить загрузку
+)
+
+# Сделать libigl доступным
+FetchContent_MakeAvailable(libigl)
+
 qt_add_executable(${PROJECT_NAME} main.cpp ${HEADER_FILES} ${SOURCE_FILES})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE 
+    IGL_NO_RAYTRI
+    IGL_NO_EMBREE
+)
 
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -47,7 +60,9 @@ Qt6::OpenGLWidgets
 opengl32.lib
 glu32.lib
 assimp::assimp
-igl::igl_stb igl::igl_core
+igl::core
+#embree
+#Eigen3::Eigen
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE QT_WIDGETS_LIB)
@@ -59,12 +74,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   src/node
   src/widgets
   src/modelloader
-  #src/modelloader/OBJ
-  #src/modelloader/glTF
   src/mainwindow
   src/scene
   src/shaders
-  ${VCPKG_PATH}/libigl_x64-windows/include
+  src/WrapperSTL
 )
 
 

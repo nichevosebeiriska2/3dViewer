@@ -8,5 +8,8 @@ uniform vec3 my_position;
 uniform vec3 model_color;
 
 void main() {
- gl_Position = mvp * model *vec4(vertexPosition, 1.0);
+ vec4 v = mvp * model *vec4(vertexPosition, 1.0);
+
+ gl_ClipDistance[0] = v.x;
+gl_Position = v;
 }

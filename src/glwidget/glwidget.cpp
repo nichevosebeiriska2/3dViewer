@@ -11,10 +11,9 @@
 
 #include "shader_program_interface.h"
 #include "modelloader.h"
-//#include "model_loader_obj.h"
-//#include "model_loader_gltf.h"
 #include "global.h"
 #include "node_tree.h"
+#include "AnalysisFunctions.h"
 
 GLWidget::GLWidget(QWidget *parent)
 	: QOpenGLWidget(parent)
@@ -36,14 +35,17 @@ void GLWidget::AddObject(ObjectWrapper *wrapper)
 {
 	m_ptr_object.reset(wrapper);
 	m_ptr_object->SetAttributes(m_program);
-	//UpdateTree(CreateTreeView());
 }
 
 
 void GLWidget::AddStlObject(std::shared_ptr< ObjectSTL> ptr_stl)
 {
-	m_ptr_stl_object = std::move(ptr_stl);
+	//m_ptr_stl_object = ptr_stl->Decimate();
+	m_ptr_stl_object = ptr_stl;
+	m_ptr_stl_object->m_ptrBoundingBox = GetBoundingBox(m_ptr_stl_object.get());
 	m_ptr_stl_object->SetAttributes(m_program);
+	m_ptr_stl_object->m_ptrBoundingBox->SetAttributes(m_program);
+	SetNormalStlShader();
 }
 
 
@@ -64,6 +66,7 @@ void GLWidget::SetDefaultOBJShader()
 	m_program = *ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::OBJ, this);
 	m_ptr_object->SetAttributes(m_program);
 }
+
 
 
 QTreeView *GLWidget::CreateTreeView()
@@ -92,6 +95,12 @@ void GLWidget::SetMeshSizeShader()
 	m_ptr_object->SetAttributes(m_program);
 }
 
+void GLWidget::SetNormalStlShader()
+{
+	m_program = *ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::STL_NORMAL_FIELD, this);
+	m_ptr_object->SetAttributes(m_program);
+}
+
 
 GLWidget::~GLWidget()
 {
@@ -110,9 +119,16 @@ void GLWidget::initializeGL()
 	glEnable(GL_DEPTH_TEST);
 
 	auto shader_program_ptr = ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::glass, this);
-	//auto shader_program_ptr = ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::STL_MESH, this);
-	//auto shader_program_ptr = ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::STL_COLORED, this);
 	auto shader_axis = ShaderProgramInterface::LoadByObjectType(ShaderProgramInterface::ObjectType::SCENE_AXIS, this);
+
+	m_mapShaders[ShaderProgramInterface::ObjectType::STL] = new ShaderProgramTriangles();
+	m_mapShaders[ShaderProgramInterface::ObjectType::STL_MESH] = new ShaderProgramWireFrame();
+	m_mapShaders[ShaderProgramInterface::ObjectType::STL_NORMAL_FIELD] = new ShaderProgramNormals();
+
+	m_mapShaderStatus[ShaderProgramInterface::ObjectType::STL] = true;
+	m_mapShaderStatus[ShaderProgramInterface::ObjectType::STL_MESH] = true;
+	m_mapShaderStatus[ShaderProgramInterface::ObjectType::STL_NORMAL_FIELD] = true;
+
 	if(!shader_program_ptr)
 	{
 		m_program = nullptr;
@@ -164,41 +180,51 @@ void GLWidget::paintGL()
 	if(!m_ptr_object || !m_program)
 		return;
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_DEPTH_TEST);
-
-	
-
-	m_program->bind();
-
-	QMatrix4x4 mvp;
-
-	mvp.perspective(45.0f, float(width()) / height(), 0.1f, 1000.0f);
-	mvp.translate(0.0f, 0.0f, - m_distance_to_center);
-
-	QMatrix4x4 model = GetRotationMatrix() * GetScaleMatrix() * GetOffsetMatrix();
-	
-	m_program->setUniformValue("mvp", mvp);
-	m_program->setUniformValue("model", model);
-
-	auto my_pos = model.inverted() * QVector3D(0, 0, m_distance_to_center);
-	m_program->setUniformValue("light_pos", createVectorFromAngles(m_light_angle_ver, m_light_angle_hor, 1000));
-	m_program->setUniformValue("my_position", my_pos);
-	m_program->setUniformValue("model_color", m_model_color);
-	m_program->setUniformValue("min_poly_size", m_ptr_object->GetMinPolySize());
-	m_program->setUniformValue("max_poly_size", m_ptr_object->GetMaxPolySize());
-
-	m_ptr_stl_object->m_vao.bind();
-	glDrawArrays(GL_TRIANGLES, 0, 120000);
-	m_ptr_stl_object->m_vao.release();
-	//m_ptr_object->DrawByShader(m_program);
+	DrawByEnabledShadres();
 
 	// Анимация
 	m_rotation += 1.0f;
 	update();  // Запрос следующего кадра
 
 
+}
+
+void GLWidget::DrawByEnabledShadres()
+{
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_CLIP_DISTANCE0);
+	glEnable(GL_CLIP_DISTANCE1);
+
+	for (const auto& [shader_type, status] : m_mapShaderStatus)
+		if (status && m_mapShaders.contains(shader_type) && m_mapShaders[shader_type])
+		{
+			auto* program = m_mapShaders[shader_type];
+			m_mapShaders[shader_type]->AcceptModelToSetAttributes(m_ptr_stl_object.get());
+			program->Bind();
+
+			QMatrix4x4 mvp;
+
+			mvp.perspective(45.0f, float(width()) / height(), 0.1f, 1000.0f);
+			mvp.translate(0.0f, 0.0f, -m_distance_to_center);
+
+			QMatrix4x4 model = GetRotationMatrix() * GetScaleMatrix() * GetOffsetMatrix();
+
+			program->Get()->setUniformValue("mvp", mvp);
+			program->Get()->setUniformValue("model", model);
+
+			auto my_pos = model.inverted() * QVector3D(0, 0, m_distance_to_center);
+			program->Get()->setUniformValue("light_pos", createVectorFromAngles(m_light_angle_ver, m_light_angle_hor, 1000));
+			program->Get()->setUniformValue("my_position", my_pos);
+			program->Get()->setUniformValue("model_color", m_model_color);
+			program->Get()->setUniformValue("min_poly_size", m_ptr_object->GetMinPolySize());
+			program->Get()->setUniformValue("max_poly_size", m_ptr_object->GetMaxPolySize());
+
+			//m_ptr_stl_object->SetAttributes(m_mapShaders[shader_type]);
+			m_mapShaders[shader_type]->Draw(m_ptr_stl_object.get());
+			m_mapShaders[shader_type]->Release();
+		}
 }
 
 void GLWidget::resizeGL(int w, int h)

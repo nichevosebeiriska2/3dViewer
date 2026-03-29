@@ -41,23 +41,4 @@ protected:
 };
 
 
-#include <Eigen/Core>
-
-struct ObjectSTL
-{
-	QVector3D m_max_point;
-	QVector3D m_min_point;
-	QVector3D m_sizes;
-	QVector3D m_middle_point;
-
-	Eigen::MatrixXf m_MatrixVertices;
-	Eigen::MatrixXi m_MatrixFaces;
-
-	QOpenGLBuffer m_vbo;
-	QOpenGLVertexArrayObject m_vao;
-
-	void SetAttributes(QOpenGLShaderProgram *program);
-	void CreateBuffers();
-};
-
 #endif

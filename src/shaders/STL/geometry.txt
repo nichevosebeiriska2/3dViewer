@@ -19,6 +19,7 @@ void main() {
 	vec3 q = (gl_in[2].gl_Position - gl_in[1].gl_Position).xyz;
 	vec3 n = normalize(cross(p, q));
 
+
 	for (int i = 0; i < gl_in.length(); i++) {
 	
 		vec3 vertex_position_v3 = gl_in[i].gl_Position.xyz;	
@@ -32,13 +33,16 @@ void main() {
 		float diffuse_coef			= length(max(falling_light_vec * n, 0.0));
 		float specular_coef			= pow(length(vision_x_refl), 4);				
 
-		vec3 vec_ambiend_color	= def_color * 0.2;
+		vec3 vec_ambiend_color	= def_color * 0.6;
 		vec3 vec_diffuse_color	= def_color * diffuse_coef  * 0.4;
-		vec3 vec_specular_color = def_color * specular_coef * 1.8;
+		vec3 vec_specular_color = def_color * specular_coef * 0.8;
 
 		fragColor = vec_ambiend_color + vec_diffuse_color + vec_specular_color;
 
-		gl_Position =  mvp * model * gl_in[i].gl_Position;
+
+		vec4 v =  mvp * model * gl_in[i].gl_Position;
+ 		gl_ClipDistance[0] = v.y;
+		gl_Position = v;
 		EmitVertex();
 	}
 	EndPrimitive();

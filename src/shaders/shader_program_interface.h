@@ -11,7 +11,7 @@ class ShaderProgramInterface
 public:
 	enum ObjectType
 	{
-		STL, STL_MESH, STL_COLORED, // STL
+		STL, STL_MESH, STL_COLORED, STL_NORMAL_FIELD,// STL
 		OBJ, OBJ_WITH_TEXTURE, //OBJ
 		SCENE_AXIS,
 		glass
@@ -23,6 +23,44 @@ public:
 
 	static std::optional<QOpenGLShaderProgram*> LoadByObjectType(ObjectType type, QObject *parent);
 
+};
+
+class ObjectSTL;
+
+class IShaderProgram
+{
+protected:
+	QOpenGLShaderProgram* m_ptrProgram = nullptr;
+
+public:
+	virtual void Draw(ObjectSTL* object) = 0;
+	void Bind();
+	void Release();
+	void AcceptModelToSetAttributes(ObjectSTL* object);
+	QOpenGLShaderProgram* Get();
+};
+
+class ShaderProgramTriangles : public IShaderProgram
+{
+public:
+	ShaderProgramTriangles();
+	void Draw(ObjectSTL* object) override;
+};
+
+
+class ShaderProgramNormals : public IShaderProgram
+{
+public:
+	ShaderProgramNormals();
+	void Draw(ObjectSTL* object) override;
+};
+
+
+class ShaderProgramWireFrame : public IShaderProgram
+{
+public:
+	ShaderProgramWireFrame();
+	void Draw(ObjectSTL* object) override;
 };
 
 #endif SHADER_PROGRAMM_INTERFACE_H

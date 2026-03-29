@@ -22,13 +22,13 @@ MainWindow::MainWindow(QWidget *parent)
 		
 		
 
-    QWidget *centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
+		QWidget *centralWidget = new QWidget(this);
+		setCentralWidget(centralWidget);
 
 		m_main_layout = new QHBoxLayout(centralWidget);
 
-    glWidget = new GLWidget(this);
-    glWidget->setMinimumSize(1000, 800);
+		glWidget = new GLWidget(this);
+		glWidget->setMinimumSize(1000, 800);
 		glWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 		connect(glWidget, &GLWidget::UpdateTree, this, &MainWindow::UpdateTreeView);
@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
 		layout->addWidget(new QPushButton("center"));
 		layout->addWidget(new QPushButton("Кнопка 2"));
 		layout->addWidget(new QPushButton("Кнопка 3"));
-    QPushButton *btnColor = new QPushButton("color");
+		QPushButton *btnColor = new QPushButton("color");
 		QLabel *colorPreview = new QLabel();
 
 		connect(btnColor, &QPushButton::clicked, [=]()
@@ -65,16 +65,27 @@ MainWindow::MainWindow(QWidget *parent)
 		layout->addWidget(m_slider_y);
     layout->addStretch();
 
-		m_main_layout->addWidget(glWidget);
+	m_pDockWidget = new QDockWidget(this);
+
+	m_pDockWidget->setFeatures(
+		QDockWidget::DockWidgetFloatable |
+		QDockWidget::DockWidgetMovable |
+		QDockWidget::DockWidgetClosable
+	);
+
+	m_pDockWidget->setWidget(glWidget);
+	addDockWidget(Qt::AllDockWidgetAreas, m_pDockWidget);
+
+	m_main_layout->addWidget(m_pDockWidget);
     m_main_layout->addLayout(layout);
 
 		auto* p_elem = new QStandardItemModel(this);
 
-		p_elem->setHorizontalHeaderLabels(QStringList() << "Node Name" << "Type");
-		auto *p_tree = new QTreeView();
-		p_tree->setModel(p_elem);
+		//p_elem->setHorizontalHeaderLabels(QStringList() << "Node Name" << "Type");
+		//auto *p_tree = new QTreeView();
+		//p_tree->setModel(p_elem);
 
-		m_main_layout->addWidget(p_tree);
+		//m_main_layout->addWidget(p_tree);
 
 		viewAction->setMenu(CreateMenuShaders());
 		toolbar->addAction(viewAction);
@@ -103,7 +114,7 @@ void MainWindow::SliderYValueChanged(int i)
 
 void MainWindow::UpdateTreeView(QTreeView *pTree)
 {
-	m_main_layout->addWidget(pTree);
+	//m_main_layout->addWidget(pTree);
 }
 
 

@@ -14,18 +14,13 @@
 #include <igl/is_vertex_manifold.h>
 #include <Eigen/Dense>
 
+#include <igl/decimate_callback_types.h>
+//#include <igl/quadric_decimation.h>
+
+
 int main(int argc, char *argv[])
 {
-	std::string str_to_stl = R"(C:\work\69-figma_parser\Tools\QtTest\models\stl\skeleton-octopus.stl)";
-	Eigen::MatrixXd V;
-	Eigen::MatrixXi F;
-
-	//if(!igl::read_triangle_mesh(str_to_stl, V, F))
-	//{
-	//	std::cerr << "Ошибка загрузки модели" << std::endl;
-	//	return 1;
-	//}
-
+	//igl::dec
 	QSurfaceFormat format;
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CompatibilityProfile);
@@ -34,7 +29,6 @@ int main(int argc, char *argv[])
 	QSurfaceFormat::setDefaultFormat(format);
 
 	QApplication app(argc, argv);
-
 
 	MainWindow window;
 	window.show();

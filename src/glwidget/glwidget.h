@@ -29,6 +29,7 @@ public:
 	void SetDefaultShader();
 	void SetMeshShader();
 	void SetMeshSizeShader();
+	void SetNormalStlShader();
 
 	void SetDefaultOBJShader();
 	QTreeView *CreateTreeView();
@@ -40,6 +41,7 @@ protected:
 	void initializeGL() override;
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
+	void DrawByEnabledShadres();
 
 	void wheelEvent(QWheelEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
@@ -64,6 +66,9 @@ private:
 	float m_light_angle_hor{0};
 	float m_light_angle_ver{0};
 
+	std::map<ShaderProgramInterface::ObjectType, IShaderProgram*> m_mapShaders;
+	std::map<ShaderProgramInterface::ObjectType, bool> m_mapShaderStatus;
+
 	float m_rotationX{0.0f};      // Вращение вокруг X
 	float m_rotationY{0.0f};      // Вращение вокруг Y
 	float m_rotationZ{0.0f};      // Вращение вокруг X
@@ -79,8 +84,6 @@ private:
 		None, Rotate, Pan
 	};
 	MouseMode m_mouseMode;
-
-	//void updateCamera();
 };
 
 #endif // GLWIDGET_H

@@ -136,14 +136,20 @@ std::vector<Material> ModelLoader::ProcessMaterials(const aiScene *scene)
 
 std::shared_ptr<ObjectSTL> ModelLoader::loadStlByIGL(const QString &filePath)
 {
-	std::string str_to_stl = R"(C:\work\69-figma_parser\Tools\QtTest\models\stl\skeleton-octopus.stl)";
-	Eigen::MatrixXf V;
+	std::string str_to_stl = filePath.toStdString();
+	Eigen::MatrixXd V;
 	Eigen::MatrixXi F;
 
 	if(!igl::read_triangle_mesh(str_to_stl, V, F))
 		nullptr;
 
+
+
+
 	auto ptr_stl_object = std::make_shared<ObjectSTL>();
+	//float x = V.data()[0];
+	//float y = V.data()[3];
+	//float z = V.data()[6];
 	ptr_stl_object->m_MatrixFaces = std::move(F);
 	ptr_stl_object->m_MatrixVertices = std::move(V);
 
